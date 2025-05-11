@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Energy Bill Calculator | USA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#ededfc',
+                            100: '#d1d1f8',
+                            200: '#a3a2f0',
+                            300: '#7674e8',
+                            400: '#5D5CDE', // Primary color
+                            500: '#4240d4',
+                            600: '#332fbe',
+                            700: '#2a279c',
+                            800: '#1f1d7a',
+                            900: '#13125a',
+                        },
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #5D5CDE;
+            cursor: pointer;
+        }
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #5D5CDE;
+            cursor: pointer;
+        }
+        .dark .slider::-webkit-slider-thumb {
+            background: #7674e8;
+        }
+        .dark .slider::-moz-range-thumb {
+            background: #7674e8;
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .dark ::-webkit-scrollbar-track {
+            background: #2d3748;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c5c5c5;
+            border-radius: 4px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #4a5568;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a3a3a3;
+        }
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #718096;
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen flex flex-col">
+    <!-- Detect dark mode -->
+    <script>
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+    </script>
+
+    <!-- Header -->
+    <header class="bg-white dark:bg-gray-800 shadow-md py-4 px-6 sticky top-0 z-10">
+        <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center">
+            <div class="flex items-center mb-4 sm:mb-0">
+                <i class="fas fa-bolt text-primary-400 text-2xl mr-3"></i>
+                <h1 class="text-xl font-bold text-primary-400">Energy Bill Calculator</h1>
+            </div>
+            <nav class="flex space-x-1 sm:space-x-2">
+                <button onclick="showPage('home')" class="nav-btn px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-sm sm:text-base">
+                    <i class="fas fa-home mr-1 sm:mr-2"></i><span class="hidden sm:inline">Home</span>
+                </button>
+                <button onclick="showPage('calculator')" class="nav-btn px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-sm sm:text-base">
+                    <i class="fas fa-calculator mr-1 sm:mr-2"></i><span class="hidden sm:inline">Calculator</span>
+                </button>
+                <button onclick="showPage('tips')" class="nav-btn px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-sm sm:text-base">
+                    <i class="fas fa-lightbulb mr-1 sm:mr-2"></i><span class="hidden sm:inline">Saving Tips</span>
+                </button>
+                <button onclick="showPage('about')" class="nav-btn px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-sm sm:text-base">
+                    <i class="fas fa-info-circle mr-1 sm:mr-2"></i><span class="hidden sm:inline">About</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main content -->
+    <main class="flex-grow container mx-auto px-4 sm:px-6 py-8">
+        <!-- Home Page -->
+        <div id="home" class="page active animate-fade-in">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl sm:text-4xl font-bold mb-4 text-primary-400">Understand Your Energy Costs</h2>
+                    <p class="text-lg sm:text-xl text-gray-600 dark:text-gray-400">Calculate, analyze, and optimize your electricity usage</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 transform transition-all hover:scale-105 animate-slide-up">
+                        <div class="text-primary-400 text-4xl mb-4">
+                            <i class="fas fa-calculator"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">Accurate Bill Calculation</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-4">Calculate your energy bills based on your location, usage patterns, and local utility rates.</p>
+                        <button onclick="showPage('calculator')" class="mt-2 bg-primary-400 hover:bg-primary-500 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                            Get Started
+                        </button>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 transform transition-all hover:scale-105 animate-slide-up" style="animation-delay: 0.1s;">
+                        <div class="text-primary-400 text-4xl mb-4">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">Energy Saving Tips</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-4">Discover practical ways to reduce your energy consumption and lower your monthly bills.</p>
+                        <button onclick="showPage('tips')" class="mt-2 bg-primary-400 hover:bg-primary-500 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                            View Tips
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 mb-12 animate-slide-up" style="animation-delay: 0.2s;">
+                    <h3 class="text-xl font-semibold mb-4">Why Calculate Your Energy Bill?</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="bg-primary-100 dark:bg-primary-900 p-2 rounded-full mr-4">
+                                <i class="fas fa-dollar-sign text-primary-400"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Save Money</h4>
+                                <p class="text-gray-600 dark:text-gray-400">Identify high-cost energy usage patterns and appliances.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="bg-primary-100 dark:bg-primary-900 p-2 rounded-full mr-4">
+                                <i class="fas fa-leaf text-primary-400"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Reduce Environmental Impact</h4>
+                                <p class="text-gray-600 dark:text-gray-400">Lower your carbon footprint by optimizing energy consumption.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="bg-primary-100 dark:bg-primary-900 p-2 rounded-full mr-4">
+                                <i class="fas fa-chart-line text-primary-400"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Track Trends</h4>
+                                <p class="text-gray-600 dark:text-gray-400">Monitor changes in your usage patterns over time.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center animate-slide-up" style="animation-delay: 0.3s;">
+                    <button onclick="showPage('calculator')" class="bg-primary-400 hover:bg-primary-500 text-white font-medium py-3 px-8 rounded-lg text-lg transition-colors">
+                        Calculate Your Bill Now
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Calculator Page -->
+        <div id="calculator" class="page">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-2xl sm:text-3xl font-bold mb-8 text-center">Energy Bill Calculator</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+                    <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-semibold mb-4">Your Usage Details</h3>
+                        
+                        <div class="mb-6">
+                            <label for="state" class="block text-sm font-medium mb-2">Select Your State</label>
+                            <select id="state" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-base focus:ring-2 focus:ring-primary-400 focus:border-primary-400 outline-none">
+                                <option value="">Select Your State</option>
+                                <option value="0.135">Alabama</option>
+                                <option value="0.242">Alaska</option>
+                                <option value="0.128">Arizona</option>
+                                <option value="0.109">Arkansas</option>
+                                <option value="0.274">California</option>
+                                <option value="0.143">Colorado</option>
+                                <option value="0.254">Connecticut</option>
+                                <option value="0.133">Delaware</option>
+                                <option value="0.129">Florida</option>
+                                <option value="0.132">Georgia</option>
+                                <option value="0.384">Hawaii</option>
+                                <option value="0.106">Idaho</option>
+                                <option value="0.149">Illinois</option>
+                                <option value="0.143">Indiana</option>
+                                <option value="0.137">Iowa</option>
+                                <option value="0.137">Kansas</option>
+                                <option value="0.128">Kentucky</option>
+                                <option value="0.119">Louisiana</option>
+                                <option value="0.210">Maine</option>
+                                <option value="0.144">Maryland</option>
+                                <option value="0.278">Massachusetts</option>
+                                <option value="0.175">Michigan</option>
+                                <option value="0.151">Minnesota</option>
+                                <option value="0.135">Mississippi</option>
+                                <option value="0.124">Missouri</option>
+                                <option value="0.115">Montana</option>
+                                <option value="0.119">Nebraska</option>
+                                <option value="0.135">Nevada</option>
+                                <option value="0.236">New Hampshire</option>
+                                <option value="0.164">New Jersey</option>
+                                <option value="0.143">New Mexico</option>
+                                <option value="0.204">New York</option>
+                                <option value="0.125">North Carolina</option>
+                                <option value="0.118">North Dakota</option>
+                                <option value="0.137">Ohio</option>
+                                <option value="0.123">Oklahoma</option>
+                                <option value="0.122">Oregon</option>
+                                <option value="0.155">Pennsylvania</option>
+                                <option value="0.265">Rhode Island</option>
+                                <option value="0.145">South Carolina</option>
+                                <option value="0.129">South Dakota</option>
+                                <option value="0.125">Tennessee</option>
+                                <option value="0.129">Texas</option>
+                                <option value="0.111">Utah</option>
+                                <option value="0.198">Vermont</option>
+                                <option value="0.135">Virginia</option>
+                                <option value="0.110">Washington</option>
+                                <option value="0.134">West Virginia</option>
+                                <option value="0.152">Wisconsin</option>
+                                <option value="0.124">Wyoming</option>
+                                <option value="0.260">District of Columbia</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label for="monthlyUsage" class="block text-sm font-medium mb-2">Monthly Energy Usage (kWh)</label>
+                            <div class="flex items-center">
+                                <input type="number" id="monthlyUsage" min="0" max="5000" value="900" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-base focus:ring-2 focus:ring-primary-400 focus:border-primary-400 outline-none">
+                                <span class="ml-2 text-gray-600 dark:text-gray-400">kWh</span>
+                            </div>
+                            <input type="range" id="monthlyUsageSlider" min="0" max="2000" value="900" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider mt-2">
+                            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                <span>0 kWh</span>
+                                <span>1000 kWh</span>
+                                <span>2000 kWh</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium mb-2">Billing Period</label>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <select id="billingMonth" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-base focus:ring-2 focus:ring-primary-400 focus:border-primary-400 outline-none">
+                                        <option value="1">January</option>
+                                        <option value="2">February</option>
+                                        <option value="3">March</option>
+                                        <option value="4">April</option>
+                                        <option value="5">May</option>
+                                        <option value="6">June</option>
+                                        <option value="7">July</option>
+                                        <option value="8">August</option>
+                                        <option value="9">September</option>
+                                        <option value="10">October</option>
+                                        <option value="11">November</option>
+                                        <option value="12">December</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <select id="billingYear" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-base focus:ring-2 focus:ring-primary-400 focus:border-primary-400 outline-none">
+                                        <option value="2024">2024</option>
+                                        <option value="2023">2023</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="customRate" class="block text-sm font-medium mb-2">Custom Rate (¢/kWh) - Optional</label>
+                            <div class="flex items-center">
+                                <input type="number" id="customRate" min="0" max="50" step="0.01" placeholder="Enter your specific rate" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-base focus:ring-2 focus:ring-primary-400 focus:border-primary-400 outline-none">
+                                <span class="ml-2 text-gray-600 dark:text-gray-400">¢/kWh</span>
+                            </div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Leave blank to use state average</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-semibold mb-4">Estimated Cost</h3>
+                        
+                        <div id="calculationResults" class="hidden">
+                            <div class="text-center mb-6">
+                                <div class="text-4xl font-bold text-primary-400 mb-1" id="totalCost">$0.00</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">Estimated Monthly Bill</div>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <h4 class="font-medium text-sm mb-2">Breakdown</h4>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Energy Charges</span>
+                                        <span id="energyCharges">$0.00</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Fixed Charges</span>
+                                        <span id="fixedCharges">$0.00</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Taxes & Fees</span>
+                                        <span id="taxesFees">$0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-gray-600 dark:text-gray-400">Rate Used</span>
+                                    <span id="rateUsed">0.00 ¢/kWh</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600 dark:text-gray-400">Usage</span>
+                                    <span id="usageDisplay">0 kWh</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-6">
+                                <canvas id="costChart" height="180"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div id="calculationPrompt" class="text-center py-8">
+                            <div class="text-gray-400 dark:text-gray-500 mb-4">
+                                <i class="fas fa-calculator text-5xl"></i>
+                            </div>
+                            <p class="text-gray-600 dark:text-gray-400 mb-4">Select your state and enter your usage to calculate your estimated bill.</p>
+                            <button id="calculateBtn" class="bg-primary-400 hover:bg-primary-500 text-white font-medium py-2 px-6 rounded-lg transition-colors">
+                                Calculate
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-10">
+                    <h3 class="text-xl font-semibold mb-4">Appliance Energy Calculator</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-4">Estimate how much energy your appliances use and their cost per month.</p>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                    <th class="py-3 px-4 text-sm">Appliance</th>
+                                    <th class="py-3 px-4 text-sm">Power (Watts)</th>
+                                    <th class="py-3 px-4 text-sm">Hours/Day</th>
+                                    <th class="py-3 px-4 text-sm">kWh/Month</th>
+                                    <th class="py-3 px-4 text-sm">Cost/Month</th>
+                                </tr>
+                            </thead>
+                            <tbody id="applianceTableBody">
+                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                    <td class="py-3 px-4">
+                                        <select class="appliance-select w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm">
+                                            <option value="" disabled selected>Select an appliance</option>
+                                            <option value="1100">Refrigerator</option>
+                                            <option value="1500">Electric Water Heater</option>
+                                            <option value="3500">Central AC</option>
+                                            <option value="1500">Space Heater</option>
+                                            <option value="1000">Window AC</option>
+                                            <option value="1200">Clothes Dryer</option>
+                                            <option value="500">Washing Machine</option>
+                                            <option value="1200">Dishwasher</option>
+                                            <option value="1500">Oven</option>
+                                            <option value="1000">Microwave</option>
+                                            <option value="250">Desktop Computer</option>
+                                            <option value="50">Laptop</option>
+                                            <option value="100">TV (LED 50")</option>
+                                            <option value="60">LED Light Bulb</option>
+                                            <option value="custom">Custom Appliance</option>
+                                        </select>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <input type="number" class="power-input w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm" value="0" min="0">
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <input type="number" class="hours-input w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm" value="0" min="0" max="24" step="0.5">
+                                    </td>
+                                    <td class="py-3 px-4 kwh-month">0</td>
+                                    <td class="py-3 px-4 cost-month">$0.00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="mt-4 flex flex-wrap gap-3">
+                        <button id="addApplianceBtn" class="text-primary-400 hover:text-primary-500 font-medium bg-primary-50 dark:bg-gray-700 py-2 px-4 rounded-lg transition-colors">
+                            <i class="fas fa-plus mr-2"></i>Add Appliance
+                        </button>
+                        <button id="calculateAppliancesBtn" class="bg-primary-400 hover:bg-primary-500 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                            Calculate
+                        </button>
+                    </div>
+                    
+                    <div class="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+                        <div class="flex justify-between font-medium">
+                            <span>Total monthly consumption:</span>
+                            <span id="applianceTotalKwh">0 kWh</span>
+                        </div>
+                        <div class="flex justify-between font-medium">
+                            <span>Total monthly cost:</span>
+                            <span id="applianceTotalCost">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-semibold mb-4">Energy Efficiency Comparison</h3>
+                    <div class="mb-4" id="comparisonChartContainer">
+                        <canvas id="comparisonChart" height="300"></canvas>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                            <h4 class="font-medium mb-2">Compared to Average Household</h4>
+                            <div id="avgComparison" class="text-gray-600 dark:text-gray-400">
+                                Enter your energy usage details to see how you compare to the average household in your state.
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                            <h4 class="font-medium mb-2">Potential Annual Savings</h4>
+                            <div id="savingsPotential" class="text-gray-600 dark:text-gray-400">
+                                Calculate your energy usage to see your potential savings.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tips Page -->
+        <div id="tips" class="page">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-2xl sm:text-3xl font-bold mb-8 text-center">Energy Saving Tips</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+                        <div class="bg-primary-100 dark:bg-primary-900 p-4">
+                            <h3 class="text-xl font-semibold text-primary-600 dark:text-primary-300">Heating & Cooling</h3>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div class="flex items-start">
+                                <div class="text-primary-400 mt-1 mr-4">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <p>Set your thermostat to 68°F in winter and 78°F in summer to save up to 10% on heating and cooling costs.</p>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="text-primary-400 mt-1 mr-4">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <p>Clean or replace air filters regularly. Dirty filters make your system work harder and use more energy.</p>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="text-primary-400 mt-1 mr-4">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <p>Use ceiling fans to create a wind-chill effect, allowing you to set your thermostat 4°F higher in summer.</p>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="text-primary-400 mt-1 mr-4">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <p>Seal air leaks around windows, doors, and ductwork to prevent energy waste.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+                        <div class="bg-primary-100 dark:bg-primary-900 p-4">
+                            <h3 class="text-xl font-semibold text-primary-600 dark:text-primary-300">Lighting & Electronics</h3>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div class="flex items-start">
+                                <div class="text-primary-400 mt-1 mr-4">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <p>Replace incandescent bulbs with LED bulbs, which use up to 75% less energy and last 25 times longer.</p>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="text-primary-400 mt-1 mr-4">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <p>Use smart power strips to eliminate phantom energy drain from electronics when not in use.</p>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="text-primary-400 mt-1 mr-4">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <p>Turn off lights when not in room. Motion sensors can automate this for forgetful household members.</p>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="text-primary-400 mt-1 mr-4">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <p>Use natural daylight when possible instead of artificial lighting.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+                        <div class="bg-primary-100 dark:bg-primary-900 p-4">
+                            <h3 class="text-xl font-semibold text-primary-600 dark:text-primary-300">Appliances & Water</h3>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div class="flex items-start">
+                                <div class="text-primary-400 mt-1 mr-4">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <p>Run dishwashers and washing machines only when full and use cold water when possible.</p>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="text-primary-400 mt-1 mr-4">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <p>Lower your water heater temperature to 120°F to save up to 10% on water heating costs.</p>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="text-primary-400 mt-1 mr-4">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <p>Clean refrigerator coils annually and keep the fridge away from heat sources.</p>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="text-primary-400 mt-1 mr-4">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <p>Hang-dry clothes when possible instead of using the dryer.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+                        <div class="bg-primary-100 dark:bg-primary-900 p-4">
+                            <h3 class="text-xl font-semibold text-primary-600 dark:text-primary-300">Seasonal Tips</h3>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div class="flex items-start">
+                                <div class="text-primary-400 mt-1 mr-4">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <p><strong>Summer:</strong> Close blinds during the day to keep heat out. Use outdoor grills instead of ovens.</p>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="text-primary-400 mt-1 mr-4">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <p><strong>Winter:</strong> Open blinds during the day to let sunlight in. Use weatherstripping to seal drafty windows.</p>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="text-primary-400 mt-1 mr-4">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <p><strong>Spring/Fall:</strong> Open windows and use natural ventilation instead of air conditioning when temperatures are mild.</p>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="text-primary-400 mt-1 mr-4">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <p><strong>Year-round:</strong> Schedule annual maintenance for HVAC systems to ensure maximum efficiency.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
+                    <h3 class="text-xl font-semibold mb-4">High-Impact Investments</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-4">These home improvements can significantly reduce your energy bills over time:</p>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                            <div class="text-primary-400 mb-2">
+                                <i class="fas fa-home"></i>
+                            </div>
+                            <h4 class="font-medium mb-1">Insulation Upgrade</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Proper insulation can save 15-20% on heating and cooling costs.</p>
+                        </div>
+                        
+                        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                            <div class="text-primary-400 mb-2">
+                                <i class="fas fa-temperature-low"></i>
+                            </div>
+                            <h4 class="font-medium mb-1">Smart Thermostat</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Save up to 10% annually on heating and cooling by using a programmable thermostat.</p>
+                        </div>
+                        
+                        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                            <div class="text-primary-400 mb-2">
+                                <i class="fas fa-window-maximize"></i>
+                            </div>
+                            <h4 class="font-medium mb-1">Energy-Efficient Windows</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">ENERGY STAR windows can save $101–$583 annually.</p>
+                        </div>
+                        
+                        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                            <div class="text-primary-400 mb-2">
+                                <i class="fas fa-solar-panel"></i>
+                            </div>
+                            <h4 class="font-medium mb-1">Solar Panels</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Can reduce or eliminate electricity bills with a 7-20 year payback period.</p>
+                        </div>
+                        
+                        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                            <div class="text-primary-400 mb-2">
+                                <i class="fas fa-fan"></i>
+                            </div>
+                            <h4 class="font-medium mb-1">HVAC Upgrade</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Modern, high-efficiency systems can reduce energy use by 20-40%.</p>
+                        </div>
+                        
+                        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                            <div class="text-primary-400 mb-2">
+                                <i class="fas fa-water"></i>
+                            </div>
+                            <h4 class="font-medium mb-1">Tankless Water Heater</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Can be 24–34% more energy efficient than conventional storage tank water heaters.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-8">
+                    <button onclick="showPage('calculator')" class="bg-primary-400 hover:bg-primary-500 text-white font-medium py-3 px-8 rounded-lg transition-colors">
+                        Calculate Your Savings Potential
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- About Page -->
+        <div id="about" class="page">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-2xl sm:text-3xl font-bold mb-8 text-center">About & FAQ</h2>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-10">
+                    <h3 class="text-xl font-semibold mb-4">About This Calculator</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-4">This Energy Bill Calculator is designed to help U.S. residents understand and estimate their electricity costs. It uses the latest average electricity rates by state and typical usage patterns to provide an approximate monthly bill calculation.</p>
+                    
+                    <p class="text-gray-600 dark:text-gray-400 mb-4">The calculator helps you:</p>
+                    <ul class="list-disc pl-5 mb-4 text-gray-600 dark:text-gray-400 space-y-2">
+                        <li>Estimate your monthly electricity bill based on your location and usage</li>
+                        <li>Calculate the energy consumption and cost of individual appliances</li>
+                        <li>Compare your usage to state averages</li>
+                        <li>Identify potential savings opportunities</li>
+                        <li>Learn practical energy-saving tips</li>
+                    </ul>
+                    
+                    <p class="text-gray-600 dark:text-gray-400">The electricity rates used in this calculator are based on the latest U.S. Energy Information Administration (EIA) data for residential electricity rates by state. These rates are updated periodically to reflect current market conditions.</p>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-10">
+                    <h3 class="text-xl font-semibold mb-6">Frequently Asked Questions</h3>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="font-medium text-lg mb-2">How is my electricity bill calculated?</h4>
+                            <p class="text-gray-600 dark:text-gray-400">Electricity bills typically consist of several components:</p>
+                            <ul class="list-disc pl-5 mt-2 text-gray-600 dark:text-gray-400 space-y-1">
+                                <li>Energy charges: Your electricity usage (kWh) multiplied by your rate</li>
+                                <li>Fixed charges: Customer service charges, meter reading fees, etc.</li>
+                                <li>Taxes and fees: State/local taxes, regulatory fees, etc.</li>
+                                <li>Riders and adjustments: Fuel cost adjustments, renewable energy fees, etc.</li>
+                            </ul>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-medium text-lg mb-2">What is a kilowatt-hour (kWh)?</h4>
+                            <p class="text-gray-600 dark:text-gray-400">A kilowatt-hour (kWh) is a unit of energy equal to 1,000 watt-hours. It represents the amount of energy consumed by a 1,000-watt appliance running for one hour. For example, a 100-watt light bulb running for 10 hours consumes 1 kWh of electricity.</p>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-medium text-lg mb-2">How accurate is this calculator?</h4>
+                            <p class="text-gray-600 dark:text-gray-400">This calculator provides an estimate based on average rates and typical billing structures. Your actual bill may vary due to factors such as:</p>
+                            <ul class="list-disc pl-5 mt-2 text-gray-600 dark:text-gray-400 space-y-1">
+                                <li>Tiered rate structures (rates that change based on usage levels)</li>
+                                <li>Time-of-use billing (different rates for peak vs. off-peak hours)</li>
+                                <li>Special discounts or programs you may be enrolled in</li>
+                                <li>Seasonal rate adjustments</li>
+                            </ul>
+                            <p class="text-gray-600 dark:text-gray-400 mt-2">For the most accurate calculation, enter your specific rate from your utility bill in the "Custom Rate" field.</p>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-medium text-lg mb-2">How can I find my actual electricity rate?</h4>
+                            <p class="text-gray-600 dark:text-gray-400">Your electricity rate can typically be found on your utility bill, often listed as "price per kWh" or "energy charge rate." If you have a complex rate structure, you may want to use the average rate, which you can calculate by dividing your total electricity charges by your total kWh usage from a recent bill.</p>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-medium text-lg mb-2">What is the average household electricity usage?</h4>
+                            <p class="text-gray-600 dark:text-gray-400">According to the U.S. Energy Information Administration (EIA), the average U.S. residential customer uses about 893 kWh per month or 10,715 kWh per year. However, this varies significantly by state, climate, home size, and household size.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-semibold mb-4">Data Sources & References</h3>
+                    <ul class="list-disc pl-5 text-gray-600 dark:text-gray-400 space-y-2">
+                        <li>U.S. Energy Information Administration (EIA) - Electricity rates and consumption data</li>
+                        <li>ENERGY STAR - Appliance energy usage estimates</li>
+                        <li>U.S. Department of Energy - Energy saving recommendations</li>
+                        <li>Environmental Protection Agency (EPA) - Energy efficiency guidelines</li>
+                    </ul>
+                    
+                    <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">This calculator is provided for informational purposes only. Actual electricity costs may vary based on many factors including specific utility rates, seasonal changes, and individual usage patterns.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-100 dark:bg-gray-800 py-6 px-6 mt-10">
+        <div class="container mx-auto text-center text-sm text-gray-600 dark:text-gray-400">
+            <p class="mb-2">Energy Bill Calculator</p>
+            <p>© 2025 | Created for educational purposes</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Navigation functionality
+        function showPage(pageId) {
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            document.getElementById(pageId).classList.add('active');
+            
+            // Update active nav button
+            const navButtons = document.querySelectorAll('.nav-btn');
+            navButtons.forEach(btn => {
+                btn.classList.remove('bg-primary-100', 'dark:bg-primary-900', 'text-primary-600', 'dark:text-primary-300');
+            });
+            
+            const activeBtn = Array.from(navButtons).find(btn => {
+                return btn.onclick.toString().includes(`showPage('${pageId}')`);
+            });
+            
+            if (activeBtn) {
+                activeBtn.classList.add('bg-primary-100', 'dark:bg-primary-900', 'text-primary-600', 'dark:text-primary-300');
+            }
+            
+            // Scroll to top when changing pages
+            window.scrollTo(0, 0);
+        }
+        
+        // Initialize nav highlighting
+        document.addEventListener('DOMContentLoaded', () => {
+            const navButtons = document.querySelectorAll('.nav-btn');
+            const homeBtn = Array.from(navButtons).find(btn => {
+                return btn.onclick.toString().includes(`showPage('home')`);
+            });
+            
+            if (homeBtn) {
+                homeBtn.classList.add('bg-primary-100', 'dark:bg-primary-900', 'text-primary-600', 'dark:text-primary-300');
+            }
+            
+            // Set up slider and input sync
+            const monthlyUsage = document.getElementById('monthlyUsage');
+            const monthlyUsageSlider = document.getElementById('monthlyUsageSlider');
+            
+            monthlyUsage.addEventListener('input', () => {
+                monthlyUsageSlider.value = monthlyUsage.value;
+            });
+            
+            monthlyUsageSlider.addEventListener('input', () => {
+                monthlyUsage.value = monthlyUsageSlider.value;
+            });
+            
+            // Set current month in the billing period dropdown
+            const now = new Date();
+            document.getElementById('billingMonth').value = now.getMonth() + 1;
+            document.getElementById('billingYear').value = now.getFullYear();
+            
+            // Add calculate button functionality
+            const calculateBtn = document.getElementById('calculateBtn');
+            calculateBtn.addEventListener('click', calculateBill);
+            
+            // Appliance calculator functionality
+            setupApplianceCalculator();
+        });
+        
+        // Bill calculation function
+        function calculateBill() {
+            const stateSelect = document.getElementById('state');
+            const monthlyUsage = document.getElementById('monthlyUsage');
+            const customRate = document.getElementById('customRate');
+            
+            // Validate inputs
+            if (!stateSelect.value) {
+                alert('Please select your state.');
+                return;
+            }
+            
+            if (!monthlyUsage.value || monthlyUsage.value <= 0) {
+                alert('Please enter your monthly usage in kWh.');
+                return;
+            }
+            
+            // Calculate bill
+            const usage = parseFloat(monthlyUsage.value);
+            let rate = parseFloat(stateSelect.value);
+            
+            // Use custom rate if provided
+            if (customRate.value && parseFloat(customRate.value) > 0) {
+                rate = parseFloat(customRate.value) / 100; // Convert cents to dollars
+            }
+            
+            // Calculate components
+            const energyCharge = usage * rate;
+            const fixedCharge = 15; // Typical monthly service charge
+            const taxesAndFees = energyCharge * 0.08; // Approximate taxes and fees
+            
+            const totalBill = energyCharge + fixedCharge + taxesAndFees;
+            
+            // Update display
+            document.getElementById('calculationPrompt').style.display = 'none';
+            document.getElementById('calculationResults').style.display = 'block';
+            
+            document.getElementById('totalCost').textContent = `$${totalBill.toFixed(2)}`;
+            document.getElementById('energyCharges').textContent = `$${energyCharge.toFixed(2)}`;
+            document.getElementById('fixedCharges').textContent = `$${fixedCharge.toFixed(2)}`;
+            document.getElementById('taxesFees').textContent = `$${taxesAndFees.toFixed(2)}`;
+            document.getElementById('rateUsed').textContent = `${(rate * 100).toFixed(2)} ¢/kWh`;
+            document.getElementById('usageDisplay').textContent = `${usage} kWh`;
+            
+            // Update charts
+            updateCostChart(energyCharge, fixedCharge, taxesAndFees);
+            updateComparisonChart(usage, rate);
+        }
+        
+        // Cost breakdown chart
+        function updateCostChart(energyCharge, fixedCharge, taxesAndFees) {
+            const ctx = document.getElementById('costChart').getContext('2d');
+            
+            // Check if chart already exists and destroy it
+            if (window.costChart) {
+                window.costChart.destroy();
+            }
+            
+            // Create new chart
+            window.costChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Energy Charges', 'Fixed Charges', 'Taxes & Fees'],
+                    datasets: [{
+                        data: [energyCharge, fixedCharge, taxesAndFees],
+                        backgroundColor: [
+                            '#5D5CDE',
+                            '#A3A2F0',
+                            '#D1D1F8'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: document.documentElement.classList.contains('dark') ? '#E5E7EB' : '#4B5563',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += `$${context.raw.toFixed(2)}`;
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Usage comparison chart
+        function updateComparisonChart(usage, rate) {
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            
+            // Average consumption by state (rough estimates for demonstration)
+            const stateSelect = document.getElementById('state');
+            const stateCode = stateSelect.options[stateSelect.selectedIndex].text;
+            
+            // Basic mapping of state to average monthly kWh
+            const stateAverages = {
+                'Alabama': 1200,
+                'Alaska': 600,
+                'Arizona': 1050,
+                'Arkansas': 1100,
+                'California': 550,
+                'Colorado': 700,
+                'Connecticut': 700,
+                'Delaware': 950,
+                'Florida': 1100,
+                'Georgia': 1150,
+                'Hawaii': 550,
+                'Idaho': 950,
+                'Illinois': 750,
+                'Indiana': 950,
+                'Iowa': 850,
+                'Kansas': 900,
+                'Kentucky': 1150,
+                'Louisiana': 1250,
+                'Maine': 600,
+                'Maryland': 950,
+                'Massachusetts': 600,
+                'Michigan': 650,
+                'Minnesota': 750,
+                'Mississippi': 1200,
+                'Missouri': 1050,
+                'Montana': 850,
+                'Nebraska': 1000,
+                'Nevada': 950,
+                'New Hampshire': 600,
+                'New Jersey': 650,
+                'New Mexico': 650,
+                'New York': 600,
+                'North Carolina': 1100,
+                'North Dakota': 1050,
+                'Ohio': 900,
+                'Oklahoma': 1100,
+                'Oregon': 900,
+                'Pennsylvania': 850,
+                'Rhode Island': 600,
+                'South Carolina': 1150,
+                'South Dakota': 1000,
+                'Tennessee': 1250,
+                'Texas': 1150,
+                'Utah': 750,
+                'Vermont': 550,
+                'Virginia': 1100,
+                'Washington': 950,
+                'West Virginia': 1050,
+                'Wisconsin': 700,
+                'Wyoming': 850,
+                'District of Columbia': 700
+            };
+            
+            const avgStateUsage = stateAverages[stateCode] || 900; // Default to national average
+            const nationalAvg = 900;
+            
+            // Calculate costs
+            const yourCost = usage * rate;
+            const stateCost = avgStateUsage * rate;
+            const nationalCost = nationalAvg * rate;
+            
+            // Check if chart already exists and destroy it
+            if (window.comparisonChart) {
+                window.comparisonChart.destroy();
+            }
+            
+            // Create new chart
+            window.comparisonChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Your Usage', `${stateCode} Average`, 'National Average'],
+                    datasets: [
+                        {
+                            label: 'Monthly kWh',
+                            data: [usage, avgStateUsage, nationalAvg],
+                            backgroundColor: '#5D5CDE',
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Monthly Cost ($)',
+                            data: [yourCost, stateCost, nationalCost],
+                            backgroundColor: '#A3A2F0',
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            position: 'left',
+                            grid: {
+                                display: true,
+                                color: document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                                color: document.documentElement.classList.contains('dark') ? '#E5E7EB' : '#4B5563'
+                            },
+                            title: {
+                                display: true,
+                                text: 'kWh',
+                                color: document.documentElement.classList.contains('dark') ? '#E5E7EB' : '#4B5563'
+                            }
+                        },
+                        y1: {
+                            position: 'right',
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: document.documentElement.classList.contains('dark') ? '#E5E7EB' : '#4B5563',
+                                callback: function(value) {
+                                    return '$' + value.toFixed(0);
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Cost ($)',
+                                color: document.documentElement.classList.contains('dark') ? '#E5E7EB' : '#4B5563'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: document.documentElement.classList.contains('dark') ? '#E5E7EB' : '#4B5563'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: document.documentElement.classList.contains('dark') ? '#E5E7EB' : '#4B5563'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Update comparison text
+            const avgComparison = document.getElementById('avgComparison');
+            const savingsPotential = document.getElementById('savingsPotential');
+            
+            let comparisonText = '';
+            if (usage < avgStateUsage) {
+                const percentLower = Math.round((avgStateUsage - usage) / avgStateUsage * 100);
+                comparisonText = `Your usage is <span class="text-green-500 font-medium">${percentLower}% lower</span> than the average ${stateCode} household (${avgStateUsage} kWh).`;
+            } else if (usage > avgStateUsage) {
+                const percentHigher = Math.round((usage - avgStateUsage) / avgStateUsage * 100);
+                comparisonText = `Your usage is <span class="text-red-500 font-medium">${percentHigher}% higher</span> than the average ${stateCode} household (${avgStateUsage} kWh).`;
+            } else {
+                comparisonText = `Your usage is the same as the average ${stateCode} household (${avgStateUsage} kWh).`;
+            }
+            
+            avgComparison.innerHTML = comparisonText;
+            
+            // Calculate potential savings
+            let savingsText = '';
+            if (usage > avgStateUsage) {
+                const potentialSavings = (usage - avgStateUsage) * rate * 12; // Annual savings
+                savingsText = `By reducing your consumption to the state average, you could save <span class="text-green-500 font-medium">$${potentialSavings.toFixed(2)}</span> annually.`;
+            } else {
+                savingsText = `You're already consuming less energy than the average household in your state. Great job!`;
+            }
+            
+            savingsPotential.innerHTML = savingsText;
+        }
+        
+        // Appliance calculator setup
+        function setupApplianceCalculator() {
+            const addApplianceBtn = document.getElementById('addApplianceBtn');
+            const calculateAppliancesBtn = document.getElementById('calculateAppliancesBtn');
+            const applianceTableBody = document.getElementById('applianceTableBody');
+            
+            // Add new appliance row
+            addApplianceBtn.addEventListener('click', () => {
+                const newRow = document.createElement('tr');
+                newRow.className = 'border-b border-gray-200 dark:border-gray-700';
+                newRow.innerHTML = `
+                    <td class="py-3 px-4">
+                        <select class="appliance-select w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm">
+                            <option value="" disabled selected>Select an appliance</option>
+                            <option value="1100">Refrigerator</option>
+                            <option value="1500">Electric Water Heater</option>
+                            <option value="3500">Central AC</option>
+                            <option value="1500">Space Heater</option>
+                            <option value="1000">Window AC</option>
+                            <option value="1200">Clothes Dryer</option>
+                            <option value="500">Washing Machine</option>
+                            <option value="1200">Dishwasher</option>
+                            <option value="1500">Oven</option>
+                            <option value="1000">Microwave</option>
+                            <option value="250">Desktop Computer</option>
+                            <option value="50">Laptop</option>
+                            <option value="100">TV (LED 50")</option>
+                            <option value="60">LED Light Bulb</option>
+                            <option value="custom">Custom Appliance</option>
+                        </select>
+                    </td>
+                    <td class="py-3 px-4">
+                        <input type="number" class="power-input w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm" value="0" min="0">
+                    </td>
+                    <td class="py-3 px-4">
+                        <input type="number" class="hours-input w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm" value="0" min="0" max="24" step="0.5">
+                    </td>
+                    <td class="py-3 px-4 kwh-month">0</td>
+                    <td class="py-3 px-4 cost-month">$0.00</td>
+                `;
+                
+                applianceTableBody.appendChild(newRow);
+                setupApplianceRowEvents(newRow);
+            });
+            
+            // Setup events for initial row
+            const initialRow = applianceTableBody.querySelector('tr');
+            setupApplianceRowEvents(initialRow);
+            
+            // Calculate appliance costs
+            calculateAppliancesBtn.addEventListener('click', calculateApplianceCosts);
+        }
+        
+        function setupApplianceRowEvents(row) {
+            const applianceSelect = row.querySelector('.appliance-select');
+            const powerInput = row.querySelector('.power-input');
+            
+            applianceSelect.addEventListener('change', () => {
+                if (applianceSelect.value === 'custom') {
+                    powerInput.value = 0;
+                    powerInput.readOnly = false;
+                } else {
+                    powerInput.value = applianceSelect.value;
+                    powerInput.readOnly = true;
+                }
+            });
+        }
+        
+        function calculateApplianceCosts() {
+            // Get rate value
+            let rate = 0.13; // Default rate if none selected
+            
+            const stateSelect = document.getElementById('state');
+            const customRate = document.getElementById('customRate');
+            
+            if (stateSelect.value) {
+                rate = parseFloat(stateSelect.value);
+            }
+            
+            if (customRate.value && parseFloat(customRate.value) > 0) {
+                rate = parseFloat(customRate.value) / 100; // Convert cents to dollars
+            }
+            
+            // Calculate for each appliance
+            const rows = document.querySelectorAll('#applianceTableBody tr');
+            let totalKwh = 0;
+            let totalCost = 0;
+            
+            rows.forEach(row => {
+                const power = parseFloat(row.querySelector('.power-input').value) || 0;
+                const hours = parseFloat(row.querySelector('.hours-input').value) || 0;
+                
+                // Calculate kWh per month (power in watts * hours per day * 30 days / 1000)
+                const kwhMonth = (power * hours * 30) / 1000;
+                // Calculate cost (kWh * rate)
+                const costMonth = kwhMonth * rate;
+                
+                // Update row
+                row.querySelector('.kwh-month').textContent = kwhMonth.toFixed(1);
+                row.querySelector('.cost-month').textContent = `$${costMonth.toFixed(2)}`;
+                
+                // Add to totals
+                totalKwh += kwhMonth;
+                totalCost += costMonth;
+            });
+            
+            // Update totals
+            document.getElementById('applianceTotalKwh').textContent = `${totalKwh.toFixed(1)} kWh`;
+            document.getElementById('applianceTotalCost').textContent = `$${totalCost.toFixed(2)}`;
+        }
+    </script>
+</body>
+</html>
